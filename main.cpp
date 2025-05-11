@@ -33,6 +33,7 @@ void print_ips(const std::vector<std::vector<std::string>>& ips) {
     }
 }
 
+
 int main([[maybe_unused]]int argc, [[maybe_unused]]char const *argv[])
 {
     try{
