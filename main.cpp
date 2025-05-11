@@ -35,13 +35,12 @@ void print_ips(const std::vector<std::vector<std::string>>& ips) {
 
 int main([[maybe_unused]]int argc, [[maybe_unused]]char const *argv[])
 {
-    try {
+    try{
         std::vector<std::vector<std::string>> ip_pool;
         for(std::string line; std::getline(std::cin, line);) {
             std::vector<std::string> ip_address = split(line, '\t');
             ip_pool.push_back(split(ip_address.at(0), '.'));
         }
-
         std::sort(ip_pool.begin(), ip_pool.end(), [](auto& a, auto& b){ 
             return std::make_tuple(std::stoi(a[0]), std::stoi(a[1]), std::stoi(a[2]), std::stoi(a[3])) >
                         std::make_tuple(std::stoi(b[0]), std::stoi(b[1]), std::stoi(b[2]), std::stoi(b[3]));});
