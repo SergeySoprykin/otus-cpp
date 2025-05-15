@@ -1,19 +1,20 @@
 cmake_minimum_required(VERSION 3.12)
-
+set(PROJ_NAME ip_filter)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
-set(APP_NAME ip_filter)
+set(APP_NAME ip_filter_cli)
+set(LIB_NAME ip_filter)
 
-project(${APP_NAME} VERSION ${PROJECT_VESRION})
+project(${PROJ_NAME} VERSION ${PROJECT_VESRION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
 configure_file(version.h.in version.h)
 
 add_executable(${APP_NAME} main.cpp)
-add_library(${APP_NAME} lib.cpp)
+add_library(${LIB_NAME} lib.cpp)
 
-set_target_properties(${APP_NAME} PROPERTIES
+set_target_properties(${APP_NAME} ${LIB_NAME} PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
 )
@@ -23,7 +24,7 @@ target_include_directories(${APP_NAME}
 )
 
 target_link_libraries(${APP_NAME} PRIVATE
-    ${APP_NAME}
+    ${LIB_NAME}
 )
 
 if(WITH_BOOST_TEST)
@@ -42,7 +43,7 @@ if(WITH_BOOST_TEST)
 
     target_link_libraries(test_version
         ${Boost_LIBRARIES}
-        ${APP_NAME}
+        ${LIB_NAME}
     )
 endif()
 
@@ -50,7 +51,7 @@ if (MSVC)
     target_compile_options(${APP_NAME} PRIVATE
         /W4
     )
-    target_compile_options(${APP_NAME} PRIVATE
+    target_compile_options(${LIB_NAME} PRIVATE
         /W4
     )
     if(WITH_BOOST_TEST)
@@ -62,7 +63,7 @@ else ()
     target_compile_options(${APP_NAME} PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
-    target_compile_options(${APP_NAME} PRIVATE
+    target_compile_options(${LIB_NAME} PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
     if(WITH_BOOST_TEST)
