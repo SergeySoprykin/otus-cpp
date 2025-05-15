@@ -4,26 +4,26 @@ set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 set(APP_NAME ip_filter)
 
-project(helloworld VERSION ${PROJECT_VESRION})
+project(${APP_NAME} VERSION ${PROJECT_VESRION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
 configure_file(version.h.in version.h)
 
 add_executable(${APP_NAME} main.cpp)
-add_library(helloworld lib.cpp)
+add_library(${APP_NAME} lib.cpp)
 
-set_target_properties(${APP_NAME} helloworld PROPERTIES
+set_target_properties(${APP_NAME} PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
 )
 
-target_include_directories(helloworld
+target_include_directories(${APP_NAME}
     PRIVATE "${CMAKE_BINARY_DIR}"
 )
 
 target_link_libraries(${APP_NAME} PRIVATE
-    helloworld
+    ${APP_NAME}
 )
 
 if(WITH_BOOST_TEST)
@@ -42,7 +42,7 @@ if(WITH_BOOST_TEST)
 
     target_link_libraries(test_version
         ${Boost_LIBRARIES}
-        helloworld
+        ${APP_NAME}
     )
 endif()
 
@@ -50,7 +50,7 @@ if (MSVC)
     target_compile_options(${APP_NAME} PRIVATE
         /W4
     )
-    target_compile_options(helloworld PRIVATE
+    target_compile_options(${APP_NAME} PRIVATE
         /W4
     )
     if(WITH_BOOST_TEST)
@@ -62,7 +62,7 @@ else ()
     target_compile_options(${APP_NAME} PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
-    target_compile_options(helloworld PRIVATE
+    target_compile_options(${APP_NAME} PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
     if(WITH_BOOST_TEST)
