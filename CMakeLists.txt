@@ -14,7 +14,7 @@ add_executable(${APP_NAME} main.cpp)
 add_library(helloworld lib.cpp)
 
 set_target_properties(${APP_NAME} helloworld PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
 
@@ -31,7 +31,7 @@ if(WITH_BOOST_TEST)
     add_executable(test_version test_version.cpp)
 
     set_target_properties(test_version PROPERTIES
-        CXX_STANDARD 14
+        CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
     )
 

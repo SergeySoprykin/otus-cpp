@@ -1,73 +1,119 @@
-#include "lib.h"
-
-#include <cassert>
-#include <cstdlib>
+#include <array>
+#include <cstddef>
+#include <map>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <tuple>
 
-std::vector<std::string> split(const std::string &str, char d) {
-    std::vector<std::string> result;
-    std::string::size_type start = 0;
-    std::string::size_type stop = str.find_first_of(d);
-    while(stop != std::string::npos) {
-        result.push_back(str.substr(start, stop - start));
-        start = stop + 1;
-        stop = str.find_first_of(d, start);
+#include "container.h"
+
+template<typename T, std::size_t MaxObjects>
+class SimpleFixedAllocator {
+private:
+    alignas(alignof(T)) std::array<unsigned char, MaxObjects * sizeof(T)> memory_;
+    std::size_t next_free_ = 0;
+
+public:
+    using value_type = T;
+    
+    template<typename U>
+    struct rebind {
+        using other = SimpleFixedAllocator<U, MaxObjects>;
+    };
+
+    SimpleFixedAllocator() noexcept = default;
+    
+    template<typename U>
+    SimpleFixedAllocator(const SimpleFixedAllocator<U, MaxObjects>&) noexcept {}
+
+    T* allocate(std::size_t n) {
+        if (next_free_ + n > MaxObjects) {
+            throw std::bad_alloc();
+        }
+        
+        T* ptr = reinterpret_cast<T*>(memory_.data() + next_free_ * sizeof(T));
+        next_free_ += n;
+        return ptr;
     }
-    result.push_back(str.substr(start));
+
+    void deallocate(T*, std::size_t) noexcept {
+        // Simple version: memory is never reused
+    }
+
+    template<typename U, typename... Args>
+    void construct(U* ptr, Args&&... args) {
+        new (ptr) U(std::forward<Args>(args)...);
+    }
+
+    template<typename U>
+    void destroy(U* ptr) {
+        ptr->~U();
+    }
+
+    std::size_t max_size() const noexcept {
+        return MaxObjects;
+    }
+};
+
+// Comparison operators
+template<typename T, typename U, std::size_t N>
+bool operator==(const SimpleFixedAllocator<T, N>&, const SimpleFixedAllocator<U, N>&) noexcept {
+    return true;
+}
+
+template<typename T, typename U, std::size_t N>
+bool operator!=(const SimpleFixedAllocator<T, N>&, const SimpleFixedAllocator<U, N>&) noexcept {
+    return false;
+}
+
+int factorial(int n) {
+    int result = 1;
+    for (int i = 1; i <= n; ++i) {
+        result *= i;
+    }
     return result;
 }
 
-void print_ips(const std::vector<std::vector<std::string>>& ips) {
-    for(auto ip = ips.cbegin(); ip != ips.cend(); ++ip) {
-        for(auto ip_part = ip->cbegin(); ip_part != ip->cend(); ++ip_part) {
-            if (ip_part != ip->cbegin()) {
-                std::cout << ".";
-            }
-            std::cout << *ip_part;
-        }
-        std::cout << std::endl;
+int main() {
+    constexpr std::size_t MAX_SIZE = 10;
+    using MapAllocator = SimpleFixedAllocator<std::pair<const int, int>, MAX_SIZE>;
+    std::map<int, int> std_map;
+    std::map<int, int, std::less<int>, MapAllocator> alloc_map;
+
+    // Fill std map
+    for (int i = 0; i < 10; ++i) {
+        std_map[i] = factorial(i);
     }
-}
-
-
-int main([[maybe_unused]]int argc, [[maybe_unused]]char const *argv[])
-{
-    try{
-        std::vector<std::vector<std::string>> ip_pool;
-        for(std::string line; std::getline(std::cin, line);) {
-            std::vector<std::string> ip_address = split(line, '\t');
-            ip_pool.push_back(split(ip_address.at(0), '.'));
-        }
-        
-        std::sort(ip_pool.begin(), ip_pool.end(), [](auto& a, auto& b){ 
-            return std::make_tuple(std::stoi(a[0]), std::stoi(a[1]), std::stoi(a[2]), std::stoi(a[3])) >
-                        std::make_tuple(std::stoi(b[0]), std::stoi(b[1]), std::stoi(b[2]), std::stoi(b[3]));});
-        print_ips(ip_pool);
-
-        auto sorted_vector = ip_pool;
-        std::string request = "1";
-        sorted_vector.erase(std::remove_if(sorted_vector.begin(), sorted_vector.end(),
-            [request](const auto& val){return val[0] != request;}), sorted_vector.end());
-        print_ips(sorted_vector);
-
-        sorted_vector = ip_pool;
-        request = "46";
-        std::string request2 = "70";
-        sorted_vector.erase(std::remove_if(sorted_vector.begin(), sorted_vector.end(),
-            [request, request2](const auto& val){return val[0] != request || val[1] != request2;}), sorted_vector.end());
-        print_ips(sorted_vector);
-
-        sorted_vector = ip_pool;
-        sorted_vector.erase(std::remove_if(sorted_vector.begin(), sorted_vector.end(),
-        [request](const auto& val){return std::none_of(val.begin(), val.end(),
-            [request](const auto& sub_val){return sub_val == request;});}), sorted_vector.end());
-        print_ips(sorted_vector);
-    } catch(const std::exception &e) {
-        std::cerr << e.what() << std::endl;
+    // Print std map
+    for (int i = 0; i < 10; ++i) {
+        std::cout << i << " " << std_map[i] << std::endl;
+    }
+   
+    // Fill alloc map
+    for (int i = 0; i < 10; ++i) {
+        alloc_map[i] = factorial(i);
+    }
+    // Print alloc map
+    for (int i = 0; i < 10; ++i) {
+        std::cout << i << " " << alloc_map[i] << std::endl;
+    }
+    
+    using VectorAllocator = SimpleFixedAllocator<int, MAX_SIZE>;
+    MyVector<int> my_vector;
+    // Fill my_vector
+    for (int i = 0; i < 10; ++i) {
+        my_vector.push_back(i);
+    }
+    // Print my_vector
+    for (int i = 0; i < 10; ++i) {
+        std::cout << my_vector[i] << std::endl;
+    }
+    MyVector<int, VectorAllocator> my_vector_with_alloc;
+    // Fill my_vector_with_alloc
+    for (int i = 0; i < 10; ++i) {
+        my_vector_with_alloc.push_back(i);
+    }
+    // Print my_vector_with_alloc
+    for (int i = 0; i < 10; ++i) {
+        std::cout << my_vector_with_alloc[i] << std::endl;
     }
     return 0;
 }
