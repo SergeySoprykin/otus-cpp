@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
-set(APP_NAME ip_filter)
+set(APP_NAME allocator)
 
 project(helloworld VERSION ${PROJECT_VESRION})
 
