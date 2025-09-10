@@ -1,119 +1,56 @@
-#include <array>
-#include <cstddef>
-#include <map>
-#include <iostream>
-
+#include "allocator.h"
 #include "container.h"
 
-template<typename T, std::size_t MaxObjects>
-class SimpleFixedAllocator {
-private:
-    alignas(alignof(T)) std::array<unsigned char, MaxObjects * sizeof(T)> memory_;
-    std::size_t next_free_ = 0;
+#include <map>
+#include <functional>
+#include <iostream>
 
-public:
-    using value_type = T;
-    
-    template<typename U>
-    struct rebind {
-        using other = SimpleFixedAllocator<U, MaxObjects>;
-    };
-
-    SimpleFixedAllocator() noexcept = default;
-    
-    template<typename U>
-    SimpleFixedAllocator(const SimpleFixedAllocator<U, MaxObjects>&) noexcept {}
-
-    T* allocate(std::size_t n) {
-        if (next_free_ + n > MaxObjects) {
-            throw std::bad_alloc();
-        }
-        
-        T* ptr = reinterpret_cast<T*>(memory_.data() + next_free_ * sizeof(T));
-        next_free_ += n;
-        return ptr;
+int factorial(int number) {
+    int res = 1;
+    for (int i = 2; i <= number; ++i) {
+        res *= i;
     }
-
-    void deallocate(T*, std::size_t) noexcept {
-        // Simple version: memory is never reused
-    }
-
-    template<typename U, typename... Args>
-    void construct(U* ptr, Args&&... args) {
-        new (ptr) U(std::forward<Args>(args)...);
-    }
-
-    template<typename U>
-    void destroy(U* ptr) {
-        ptr->~U();
-    }
-
-    std::size_t max_size() const noexcept {
-        return MaxObjects;
-    }
-};
-
-// Comparison operators
-template<typename T, typename U, std::size_t N>
-bool operator==(const SimpleFixedAllocator<T, N>&, const SimpleFixedAllocator<U, N>&) noexcept {
-    return true;
+    return res;
 }
 
-template<typename T, typename U, std::size_t N>
-bool operator!=(const SimpleFixedAllocator<T, N>&, const SimpleFixedAllocator<U, N>&) noexcept {
-    return false;
+template <typename T, typename U>
+std::ostream& operator<<(std::ostream& stream, const std::pair<T, U>& pair) {
+    stream << pair.first << ' ' << pair.second;
+    return stream;
 }
 
-int factorial(int n) {
-    int result = 1;
-    for (int i = 1; i <= n; ++i) {
-        result *= i;
+template <typename Container>
+void print(Container& container) {
+    for (auto& element : container) {
+        std::cout << element << std::endl;
     }
-    return result;
 }
 
 int main() {
-    constexpr std::size_t MAX_SIZE = 10;
-    using MapAllocator = SimpleFixedAllocator<std::pair<const int, int>, MAX_SIZE>;
-    std::map<int, int> std_map;
-    std::map<int, int, std::less<int>, MapAllocator> alloc_map;
+    std::map<int, int> map_std_alloc;
+    std::map<int, int, std::less<int>, SimpleArrayAllocator<std::pair<const int, int>, 10>> map_custom_alloc;
+    ForwardList<int> list_std_alloc;
+    ForwardList<int, SimpleArrayAllocator<int, 10>> list_custom_alloc;
 
-    // Fill std map
     for (int i = 0; i < 10; ++i) {
-        std_map[i] = factorial(i);
+        map_std_alloc.emplace(i, factorial(i));
     }
-    // Print std map
     for (int i = 0; i < 10; ++i) {
-        std::cout << i << " " << std_map[i] << std::endl;
+        map_custom_alloc.emplace(i, factorial(i));
     }
-   
-    // Fill alloc map
+
+    auto last = list_std_alloc.begin();
     for (int i = 0; i < 10; ++i) {
-        alloc_map[i] = factorial(i);
+        last = list_std_alloc.insert_after(last.get_node(), i);
     }
-    // Print alloc map
+
+    auto last_custom = list_custom_alloc.begin();
     for (int i = 0; i < 10; ++i) {
-        std::cout << i << " " << alloc_map[i] << std::endl;
+        last_custom = list_custom_alloc.insert_after(last_custom.get_node(), i);
     }
-    
-    using VectorAllocator = SimpleFixedAllocator<int, MAX_SIZE>;
-    MyVector<int> my_vector;
-    // Fill my_vector
-    for (int i = 0; i < 10; ++i) {
-        my_vector.push_back(i);
-    }
-    // Print my_vector
-    for (int i = 0; i < 10; ++i) {
-        std::cout << my_vector[i] << std::endl;
-    }
-    MyVector<int, VectorAllocator> my_vector_with_alloc;
-    // Fill my_vector_with_alloc
-    for (int i = 0; i < 10; ++i) {
-        my_vector_with_alloc.push_back(i);
-    }
-    // Print my_vector_with_alloc
-    for (int i = 0; i < 10; ++i) {
-        std::cout << my_vector_with_alloc[i] << std::endl;
-    }
-    return 0;
+
+    print(map_std_alloc);
+    print(map_custom_alloc);
+    print(list_std_alloc);
+    print(list_custom_alloc);
 }
