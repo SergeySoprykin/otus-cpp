@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
-set(PROJ_NAME allocator)
+set(PROJ_NAME sfinae)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
-set(APP_NAME allocator_cli)
-set(LIB_NAME allocator)
+set(APP_NAME sfinae_cli)
+set(LIB_NAME sfinae)
 
 project(${PROJ_NAME} VERSION ${PROJECT_VESRION})
 
@@ -20,6 +20,9 @@ set_target_properties(${APP_NAME} ${LIB_NAME} PROPERTIES
 )
 
 target_include_directories(${APP_NAME}
+    PRIVATE "${CMAKE_BINARY_DIR}"
+)
+target_include_directories(${LIB_NAME}
     PRIVATE "${CMAKE_BINARY_DIR}"
 )
 
