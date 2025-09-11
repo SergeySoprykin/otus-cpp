@@ -1,4 +1,4 @@
-sfinaename: 'C++ CI'
+name: 'C++ CI'
 
 on: push
 
