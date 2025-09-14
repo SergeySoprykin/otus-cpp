@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
-set(PROJ_NAME sfinae)
+set(PROJ_NAME matrix)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
-set(APP_NAME sfinae_cli)
-set(LIB_NAME sfinae)
+set(APP_NAME matrix_cli)
+set(LIB_NAME matrix)
 
 project(${PROJ_NAME} VERSION ${PROJECT_VESRION})
 

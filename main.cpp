@@ -1,17 +1,27 @@
-#include "print_ip.h"
-
+#include "SparseMatrix.h"
 #include <iostream>
-#include <vector>
-#include <string>
-#include <list>
+
+void print_matrix(const SparseInfiniteMatrix<int, 0>& matrix) {
+    for (std::size_t i = 1; i <= 8; ++i){
+        for (std::size_t j = 1; j <= 8; ++j) {
+            std::cout << matrix[i][j] << ' ';
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "Matrix size: " << matrix.size() << std::endl;
+}
 
 int main()
 {
-    print_ip(int8_t(-1));
-    print_ip(int16_t(0));
-    print_ip(int32_t(2130706433));
-    print_ip(int64_t(8875824491850138409));
-    print_ip(std::string{"Hello world!"});
-    print_ip(std::vector<int>{100, 200, 300, 400});
-    print_ip(std::list<short>{400, 300, 200, 100});
+    SparseInfiniteMatrix<int, 0> matrix;
+    for (std::size_t i = 0; i < 9; ++i){
+        matrix[i][i] = i;
+        matrix[i][9 - i] = 9 - i;
+    }
+
+    print_matrix(matrix);
+    
+    matrix.forEach([](auto i, auto j, auto x){std::cout << "[" << i << ", " << j << "] = " << x << "; ";});
+   
+    return 0;
 }
